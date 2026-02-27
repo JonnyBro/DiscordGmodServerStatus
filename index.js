@@ -36,7 +36,6 @@ client.on("clientReady", async () => {
 				const embedSatus = new EmbedBuilder()
 					.setTitle(state.name)
 					.setColor("#5ad65c")
-					.setDescription("------------------------\n\u200B")
 					.setThumbnail(
 						"https://image.gametracker.com/images/maps/160x120/garrysmod/" +
 							state.map +
@@ -45,24 +44,20 @@ client.on("clientReady", async () => {
 					.addFields(
 						{
 							name: "Map ",
-							value: " 🔹 `" + state.map + "` \n\u200B",
+							value: " * `" + state.map + "`",
 						},
 						{
 							name:
 								"Players connected `" +
-								state.raw.numplayers +
+								state.numplayers +
 								"/" +
 								state.maxplayers +
 								"`",
 							value: playerList,
 						},
 						{
-							name: "\u200B",
-							value: "------------------------",
-						},
-						{
 							name: "Join server",
-							value: "**steam://connect/" + ip + ":" + port + "**",
+							value: `steam://connect/${config.ip}:${config.port}`,
 						},
 					)
 					.setFooter({ text: "Updated at" })
