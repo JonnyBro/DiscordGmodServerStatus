@@ -1,6 +1,8 @@
 {
 	"token": "*********",
 	"channelId": "Channel_ID",
-	"ip": "Server_IP",
-	"port": 27015
+	"servers": [
+		"ip:port",
+		"domain:port"
+	]
 }

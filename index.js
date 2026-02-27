@@ -1,4 +1,4 @@
-import { Client, Embed, EmbedBuilder, GatewayIntentBits, Partials } from "discord.js";
+import { Client, GatewayIntentBits, Partials, EmbedBuilder } from "discord.js";
 import { GameDig } from "gamedig";
 import config from "./config.json" with { type: "json" };
 
@@ -8,78 +8,58 @@ const client = new Client({
 });
 
 client.on("clientReady", async () => {
+	console.log(`Logged in as ${client.user.tag}`);
+
 	const channel = await client.channels.fetch(config.channelId);
+	const msg = await channel.send("Fetching server statuses...");
 
-	const status = await channel.send(":thinking:");
+	const updateStatus = async () => {
+		const embed = new EmbedBuilder()
+			.setTitle("Server Status")
+			.setColor("#5ad65c")
+			.setTimestamp();
 
-	const task = () => {
-		GameDig.query({
-			type: "garrysmod",
-			host: config.ip,
-			port: config.port,
-		})
-			.then(state => {
-				let playerList = "";
+		for (const server of config.servers) {
+			const [ip, portStr] = server.split(":");
+			const port = Number(portStr);
 
-				if (state.raw.numplayers == 0) {
-					playerList = " * There is no one on the server...";
+			try {
+				const state = await GameDig.query({
+					type: "garrysmod",
+					host: ip,
+					port: port,
+				});
+
+				let playerList = " - There is no one on the server...";
+				if (state.players.length > 0) {
+					playerList = state.players
+						.map(p => p.name || "*Connecting ...*")
+						.map(s => ` - ${s}`)
+						.join("\n");
 				}
 
-				for (var i = 0; i < state.players.length; i++) {
-					if (!state.players[i].name) {
-						state.players[i].name = "*Connecting ...*";
-					}
+				embed.addFields([
+					{
+						name: `${state.name} (${ip}:${port})`,
+						value: `Map: \`${state.map}\`\nPlayers: \`${state.numplayers}/${state.maxplayers}\`\n${playerList}\n\`steam://connect/${ip}:${port}\``,
+					},
+				]);
+			} catch (err) {
+				console.log(err);
+				embed.addFields([{ name: `Server ${ip}:${port}`, value: "Server offline..." }]);
+			}
+		}
 
-					playerList = playerList + "\n 🔹 " + state.players[i].name;
-				}
+		embed.addFields({
+			name: "Last check",
+			value: `<t:${Math.round(Date.now() / 1000)}:R>`,
+		});
 
-				const embedSatus = new EmbedBuilder()
-					.setTitle(state.name)
-					.setColor("#5ad65c")
-					.setThumbnail(
-						"https://image.gametracker.com/images/maps/160x120/garrysmod/" +
-							state.map +
-							".jpg",
-					)
-					.addFields(
-						{
-							name: "Map ",
-							value: " * `" + state.map + "`",
-						},
-						{
-							name:
-								"Players connected `" +
-								state.numplayers +
-								"/" +
-								state.maxplayers +
-								"`",
-							value: playerList,
-						},
-						{
-							name: "Join server",
-							value: `steam://connect/${config.ip}:${config.port}`,
-						},
-					)
-					.setFooter({ text: "Updated at" })
-					.setTimestamp();
-
-				status.edit({ content: null, embeds: [embedSatus] });
-			})
-			.catch(e => {
-				console.log(e)
-
-				const embedSatusOff = new EmbedBuilder()
-					.setTitle("Server offline...")
-					.setColor("#d65a5a")
-					.setFooter({ text: "Updated at" })
-					.setTimestamp();
-
-				status.edit({ content: null, embeds: [embedSatusOff] });
-			});
+		await msg.edit({ content: null, embeds: [embed] });
 	};
 
-	task();
-	setInterval(task, 60000);
+	updateStatus();
+	setInterval(updateStatus, 60000);
 });
 
 client.login(config.token);
