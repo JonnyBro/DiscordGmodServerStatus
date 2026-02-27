@@ -1,81 +1,90 @@
-const { Client, Intents, MessageEmbed } = require('discord.js');
+import { Client, Embed, EmbedBuilder, GatewayIntentBits, Partials } from "discord.js";
+import { GameDig } from "gamedig";
+import config from "./config.json" with { type: "json" };
+
 const client = new Client({
-	intents: [
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MESSAGES,
-	]
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+	partials: [Partials.Channel],
 });
 
-const Gamedig = require('gamedig');
-const { token, channelID, ip, port } = require('./config.json');
+client.on("clientReady", async () => {
+	const channel = await client.channels.fetch(config.channelId);
 
-client.on('ready', async () => {
-    channel = client.channels.cache.get(channelID)
+	const status = await channel.send(":thinking:");
 
-    await channel.bulkDelete(1, true)
-	status = await channel.send('🤔')
+	const task = () => {
+		GameDig.query({
+			type: "garrysmod",
+			host: config.ip,
+			port: config.port,
+		})
+			.then(state => {
+				let playerList = "";
 
-	task = () => {
-		Gamedig.query({
-			type: 'garrysmod',
-			host: ip,
-			port: port,
-		}).then((state) => {
-			var playerList = ""
-
-			if (state.raw.numplayers == 0) {
-				playerList = " 🔸 There is no one on the server 😥"
-			}
-				    
-			for (var i = 0; i < state.players.length; i++) {
-				if (!state.players[i].name) {
-					state.players[i].name = "*Connecting ...*"
+				if (state.raw.numplayers == 0) {
+					playerList = " * There is no one on the server...";
 				}
 
-				playerList = playerList + "\n 🔹 " + state.players[i].name
-			}
+				for (var i = 0; i < state.players.length; i++) {
+					if (!state.players[i].name) {
+						state.players[i].name = "*Connecting ...*";
+					}
 
-			let embedSatus = new MessageEmbed()
-				.setTitle("🟢 " + state.name)
-				.setColor("#5ad65c")
-				.setDescription('━━━━━━━━━━━━━━━━━━━━━━━━\n\u200B')
-				.setThumbnail('https://image.gametracker.com/images/maps/160x120/garrysmod/' + state.map + '.jpg')
-				.addFields(
-					{
-						name: "🌍 ┃ Map ",
-						value: " 🔹 `" + state.map + "` \n\u200B"
-					},
-					{
-						name: "👥 ┃ Players connected `" + state.raw.numplayers + "/"+ state.maxplayers +"`",
-						value: playerList
-					},
-					{
-						name: "\u200B",
-						value: "━━━━━━━━━━━━━━━━━━━━━━━━",
-					},
-					{
-						name: "📡 ┃ Join us",
-						value: "**steam://connect/"+ ip + ":" + port + "**",
-					},
-				)
-				.setFooter({ text: 'Update' })
-				.setTimestamp()
+					playerList = playerList + "\n 🔹 " + state.players[i].name;
+				}
 
-			status.edit({ content: null, embeds: [ embedSatus ] })
-				    
-		}).catch((error) => {
-			let embedSatusOff = new MessageEmbed()
-				.setTitle("🔴 Serveur offline")
-				.setColor("#d65a5a")
-				.setFooter({ text: 'Update' })
-				.setTimestamp()
+				const embedSatus = new EmbedBuilder()
+					.setTitle(state.name)
+					.setColor("#5ad65c")
+					.setDescription("------------------------\n\u200B")
+					.setThumbnail(
+						"https://image.gametracker.com/images/maps/160x120/garrysmod/" +
+							state.map +
+							".jpg",
+					)
+					.addFields(
+						{
+							name: "Map ",
+							value: " 🔹 `" + state.map + "` \n\u200B",
+						},
+						{
+							name:
+								"Players connected `" +
+								state.raw.numplayers +
+								"/" +
+								state.maxplayers +
+								"`",
+							value: playerList,
+						},
+						{
+							name: "\u200B",
+							value: "------------------------",
+						},
+						{
+							name: "Join server",
+							value: "**steam://connect/" + ip + ":" + port + "**",
+						},
+					)
+					.setFooter({ text: "Updated at" })
+					.setTimestamp();
 
-			status.edit({ content: null, embeds: [ embedSatusOff ] })
-		});
-	}
+				status.edit({ content: null, embeds: [embedSatus] });
+			})
+			.catch(e => {
+				console.log(e)
+
+				const embedSatusOff = new EmbedBuilder()
+					.setTitle("Server offline...")
+					.setColor("#d65a5a")
+					.setFooter({ text: "Updated at" })
+					.setTimestamp();
+
+				status.edit({ content: null, embeds: [embedSatusOff] });
+			});
+	};
 
 	task();
 	setInterval(task, 60000);
-})
+});
 
-client.login(token);
+client.login(config.token);

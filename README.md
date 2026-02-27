@@ -1,29 +1,10 @@
-# Discord Bot Gmod Server Status 📊
-Script that allows to have the status of a Gmod server thanks to a Discord bot
+# Discord Bot Gmod Server Status
 
-## 👀 Preview 
-![alt text](https://github.com/Ralex91/DiscordGmodServerStatus/blob/main/preview.PNG?raw=true)
+Simple Discord bot that allows you to see GMod server's statistics
 
-## 🛠 Installation
-- Copy files from this repositorie in server file
+## Installation
 
-- Install NodeJS Packages 
-  
-  `npm install`
-
-- Create Channel in Your Discord Server
-  
-- Change parameters in the config.json file
-
-  config.json :
-  ```json
-  {
-    "token": "Discord Token",
-    "channelID": "Channel ID",
-    "ip": "IP of gmod server",
-    "port": 27015
-  }
-  ```
-- Start the script
-
-  `npm start` or `node index`
+1. `git clone https://github.com/JonnyBro/DiscordGmodServerStatus`.
+1. `pnpm i`.
+1. Copy `config.example.json` to `config.json` and edit it.
+1. `pnpm start` or `node index`.

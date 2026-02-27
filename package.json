@@ -1,15 +1,15 @@
 {
-  "name": "discord-gmod-status",
-  "version": "1.0.0",
-  "description": "Script that allows to have the status of a Gmod server thanks to a Discord bot",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index"
-  },
-  "author": "Ralex",
-  "license": "ISC",
-  "dependencies": {
-    "discord.js": "^13.10.3",
-    "gamedig": "^4.0.5"
-  }
+	"name": "discord-gmod-status",
+	"version": "2.0.0",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"start": "node index"
+	},
+	"author": "Jonny_Bro",
+	"license": "ISC",
+	"dependencies": {
+		"discord.js": "^14.25.1",
+		"gamedig": "^5.3.2"
+	}
 }
